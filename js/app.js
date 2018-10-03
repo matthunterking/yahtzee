@@ -21,7 +21,6 @@ class Die {
     if(this.value) {
       this.active = false;
     }
-    console.log(this);
   }
 }
 
@@ -32,9 +31,24 @@ const die4 = new Die(4, $('<div class="dice" id="4"></div>'), $('<p class="die4V
 const die5 = new Die(5, $('<div class="dice" id="5"></div>'), $('<p class="die5Value">-</p>'), '<button class=die5Hold>Hold</button>', 0, true);
 
 const dice = [die1, die2, die3, die4, die5];
-
+const scoreCard = {};
 
 function setUp() {
+  scoreCard.ones = {
+    total: 0,
+    displayValue: $('.ones'),
+    formula: function() {
+      console.log(dice.filter(die => die.value === 1));
+      this.total = dice.filter(die => die.value === 1).reduce((total, die) => {
+        console.log(total);
+        return total + die.value;
+      }, 0);
+      console.log(this);
+      this.displayValue.text(this.total);
+    },
+    selectButton: $('#ones'),
+    active: true
+  };
   dice.forEach(die => {
     die.domElement.append(die.displayValue, `<button class=die${die.id}Hold id=${die.id}>Hold</button>`);
     $('.gameboard').append(die.domElement);
@@ -42,6 +56,7 @@ function setUp() {
   });
   $('.gameboard').append($rollButton);
   $rollButton.on('click', rollDice);
+  scoreCard.ones.selectButton.on('click', select);
 }
 
 function rollDice() {
@@ -50,6 +65,10 @@ function rollDice() {
 
 function hold() {
   dice[this.id -1].hold();
+}
+
+function select() {
+  scoreCard[this.id].formula();
 }
 
 $(function(){
