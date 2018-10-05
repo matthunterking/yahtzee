@@ -1,129 +1,3 @@
-// Game object?
-//1's
-  // function
-  // selectButton domElement
-  // displayValue domElement
-  // total
-  // active t/f
-//2's
-//3's
-//4's
-//5's
-//6's
-
-// round object
-//
-// class category {
-//   constructor(value, calculation, $selectButton, $displayValue, total, active) {
-//     this.value = value;
-//     this.calculation = calculation;
-//     this.$selectButton = $selectButton;
-//     this.$displayValue = $displayValue;
-//     this.total = total;
-//     this.active = active;
-//   }
-//   select() {
-//     if(this.active) {
-//       this.calculation();
-//     }
-//     this.active = false;
-//   }
-// }
-//
-// function sumOfMatching(sumValue) {
-//   return 0;
-// }
-//
-// function sumOfAll() {
-//   return 1;
-// }
-//
-// class game {
-//   constructor(id) {
-//     this.id = id;
-//     this.ones = new category(1, sumOfMatching, $('body'), $('body'), 0, true);
-//   }
-// }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-// // class Die {
-// //   constructor(id, domElement, displayValue, holdButton, value, active) {
-// //     this.id = id;
-// //     this.domElement = domElement;
-// //     this.displayValue = displayValue;
-// //     this.holdButton = holdButton;
-// //     this.value = value;
-// //     this.active = active;
-// //   }
-// //   roll() {
-// //     if(this.active) {
-// //       const value = Math.floor(Math.random() * 6) + 1;
-// //       this.value = value;
-// //       console.log(this);
-// //       this.displayValue.text(value);
-// //     }
-// //   }
-// //   hold() {
-// //     if(this.value) {
-// //       this.active = false;
-// //     }
-// //   }
-// // }
-//
-//
-//
-// const scoreCard = {};
-//
-// function setUp() {
-//   scoreCard.ones = {
-//     total: 0,
-//     displayValue: $('.ones'),
-//     formula: function() {
-//       console.log(dice.filter(die => die.value === 1));
-//       this.total = dice.filter(die => die.value === 1).reduce((total, die) => {
-//         console.log(total);
-//         return total + die.value;
-//       }, 0);
-//       console.log(this);
-//       this.displayValue.text(this.total);
-//     },
-//     selectButton: $('#ones'),
-//     active: true
-//   };
-//   dice.forEach(die => {
-//     die.domElement.append(die.displayValue, `<button class=die${die.id}Hold id=${die.id}>Hold</button>`);
-//     $('.gameboard').append(die.domElement);
-//     $(`.die${die.id}Hold`).on('click', hold);
-//   });
-//   $('.gameboard').append($rollButton);
-//
-//   scoreCard.ones.selectButton.on('click', select);
-// }
-//
-//
-//
-// function hold() {
-//   dice[this.id -1].hold();
-// }
-//
-// function select() {
-//   scoreCard[this.id].formula();
-// }
-
 $(function(){
 
   const $rollButton = $('.rollButton');
@@ -138,7 +12,9 @@ $(function(){
     }
     roll() {
       if(this.active) {
+        // NOTE: uncomment line 16 when not testing;
         const value = Math.floor(Math.random() * 6) + 1;
+        // const value = 3;
         this.value = value;
         this.$domElement.text(value);
       }
@@ -162,11 +38,15 @@ $(function(){
 
   const dice = [die1, die2, die3, die4, die5];
   let rollCount = 0;
+  let turnCount = 0;
 
   function rollDice() {
+    console.log(rollCount);
     if(rollCount < 3) {
       dice.forEach(dice => dice.roll());
       rollCount ++;
+    } else if(rollCount === 3) {
+      $rollButton.css('backgroundColor', 'grey');
     }
   }
 
@@ -189,13 +69,21 @@ $(function(){
     select() {
       if(this.active) {
         this.calculation(this.value);
+        this.$selectButton.css('backgroundColor', 'grey');
+        turnCount ++;
+        game1.subtotal();
       }
+      $rollButton.css('backgroundColor', 'white');
       dice.forEach(die => {
         die.active = true;
         die.$domElement.css('border', '1px solid black');
       });
       rollCount = 0;
       this.active = false;
+      if(turnCount > 5) {
+        // TODO: Add in a way to switch between upper and lower
+        console.log('end!!!');
+      }
     }
   }
 
@@ -207,8 +95,50 @@ $(function(){
     this.$displayValue.text(total);
   }
 
-  function sumOfAll() {
-    return 1;
+  function sumOfAll(condition) {
+    if(checkCondition(condition)){
+      this.total = dice.reduce((total, die) => total + die.value, 0);
+    } else {
+      this.total = 0;
+    }
+    this.active = false;
+    this.$displayValue.text(this.total);
+  }
+
+  function setValue(condition) {
+    if(checkCondition(condition)){
+      this.total = 50;
+      this.active = false;
+      this.$displayValue.text('50');
+    } else {
+      this.total = 0;
+    }
+  }
+
+  function checkCondition(condition) {
+    let pass = false;
+    if(condition === 'x3') {
+      pass = sameOfAKindCheck(3);
+    } else if(condition === 'x4') {
+      pass = sameOfAKindCheck(4);
+    } else if(condition === 'x5') {
+      pass = sameOfAKindCheck(5);
+    }
+    return pass;
+  }
+
+  function sameOfAKindCheck(number) {
+    let pass = false;
+    const diceTotals = dice.sort().reduce((object, die) => {
+      object[die.value] = object[die.value] ? object[die.value] + 1 : 1;
+      return object;
+    }, {});
+    Object.keys(diceTotals).forEach(key => {
+      if(diceTotals[key] >= number) {
+        return pass = true;
+      }
+    });
+    return pass;
   }
 
   class game {
@@ -221,6 +151,27 @@ $(function(){
       this.fives = new category('fives', 5, sumOfMatching);
       this.sixes = new category('sixes', 6, sumOfMatching);
       this.upper = [this.ones, this.twos, this.threes, this.fours, this.fives, this.sixes];
+      this.upperTotal = 0;
+      this.threeOfAKind = new category('threeOfAKind', 'x3', sumOfAll);
+      this.fourOfAKind = new category('fourOfAKind', 'x4', sumOfAll);
+
+      this.yahtzee = new category('yahtzee', 'x5', setValue);
+
+      this.lower = [this.threeOfAKind, this.fourOfAKind, this.yahtzee];
+    }
+    subtotal() {
+      const $subtotalDisplay = $('#upperSubtotal');
+      const $grandTotalDisplay = $('#upperTotal');
+      const subtotal = this.upper.reduce((total, category) => {
+        return total + category.total;
+      }, 0);
+      $subtotalDisplay.text(subtotal);
+      this.upperTotal = subtotal;
+      if(subtotal >= 63) {
+        $('#upperBonus').text('35');
+        this.upperTotal += 35;
+      }
+      $grandTotalDisplay.text(this.upperTotal);
     }
   }
 
@@ -232,7 +183,11 @@ $(function(){
   game1.upper.forEach(category => {
     category.$selectButton.on('click', selectScore);
   });
+  //TODO DO THIS AFTER UPPER IS FINISHED
+  game1.lower.forEach(category => {
+    category.$selectButton.on('click', selectScore);
+  });
 
-
+  console.log(game1);
 
 });
