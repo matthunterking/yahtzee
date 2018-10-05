@@ -106,23 +106,47 @@ $(function(){
   }
 
   function setValue(condition) {
+    console.log(this.name);
+    const values = {
+      fullHouse: 25,
+      smallStraight: 30,
+      largeStraight: 40,
+      yahtzee: 50
+    };
     if(checkCondition(condition)){
-      this.total = 50;
+      this.total = values[this.name];
       this.active = false;
-      this.$displayValue.text('50');
+      this.$displayValue.text(this.total);
     } else {
       this.total = 0;
+      this.$displayValue.text(this.total);
     }
   }
 
   function checkCondition(condition) {
     let pass = false;
-    if(condition === 'x3') {
-      pass = sameOfAKindCheck(3);
-    } else if(condition === 'x4') {
-      pass = sameOfAKindCheck(4);
-    } else if(condition === 'x5') {
-      pass = sameOfAKindCheck(5);
+    switch (condition) {
+      case 'x3':
+        pass = sameOfAKindCheck(3);
+        break;
+      case 'x4':
+        pass = sameOfAKindCheck(4);
+        break;
+      case 'x5':
+        pass = sameOfAKindCheck(5);
+        break;
+      case 'FH':
+        pass = true;
+        break;
+      case 'SS':
+        pass = true;
+        break;
+      case 'LS':
+        pass = true;
+        break;
+      case 'C':
+        pass = true;
+        break;
     }
     return pass;
   }
@@ -154,10 +178,21 @@ $(function(){
       this.upperTotal = 0;
       this.threeOfAKind = new category('threeOfAKind', 'x3', sumOfAll);
       this.fourOfAKind = new category('fourOfAKind', 'x4', sumOfAll);
-
+      this.fullHouse = new category('fullHouse', 'FH', setValue);
+      this.smallStraight = new category('smallStraight', 'SS', setValue);
+      this.largeStraight = new category('largeStraight', 'LS', setValue);
       this.yahtzee = new category('yahtzee', 'x5', setValue);
+      this.chance = new category('chance', 'C', sumOfAll);
 
-      this.lower = [this.threeOfAKind, this.fourOfAKind, this.yahtzee];
+      this.lower = [
+        this.threeOfAKind,
+        this.fourOfAKind,
+        this.fullHouse,
+        this.smallStraight,
+        this.largeStraight,
+        this.yahtzee,
+        this.chance
+      ];
     }
     subtotal() {
       const $subtotalDisplay = $('#upperSubtotal');
