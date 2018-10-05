@@ -129,10 +129,10 @@ $(function(){
   const $rollButton = $('.rollButton');
 
   class Die {
-    constructor(value) {
-      this.value = value;
-      this.$domElement = $(`#${value}`);
-      this.$holdButton = $(`.${value}dieHold`);
+    constructor(id) {
+      this.value = 0;
+      this.$domElement = $(`#${id}`);
+      this.$holdButton = $(`.${id}dieHold`);
       this.active = true;
       this.$holdButton.on('click', holdDie);
     }
@@ -144,8 +144,12 @@ $(function(){
       }
     }
     hold() {
-      if(this.value) {
+      if(this.value && this.active) {
         this.active = false;
+        this.$domElement.css('border', '2px solid red');
+      } else if(!this.active) {
+        this.active = true;
+        this.$domElement.css('border', '1px solid black');
       }
     }
   }
@@ -157,10 +161,13 @@ $(function(){
   const die5 = new Die(5);
 
   const dice = [die1, die2, die3, die4, die5];
-
+  let rollCount = 0;
 
   function rollDice() {
-    dice.forEach(dice => dice.roll());
+    if(rollCount < 3) {
+      dice.forEach(dice => dice.roll());
+      rollCount ++;
+    }
   }
 
   function holdDie() {
@@ -183,6 +190,11 @@ $(function(){
       if(this.active) {
         this.calculation(this.value);
       }
+      dice.forEach(die => {
+        die.active = true;
+        die.$domElement.css('border', '1px solid black');
+      });
+      rollCount = 0;
       this.active = false;
     }
   }
@@ -220,5 +232,7 @@ $(function(){
   game1.upper.forEach(category => {
     category.$selectButton.on('click', selectScore);
   });
+
+
 
 });
