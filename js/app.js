@@ -136,7 +136,7 @@ $(function(){
         pass = sameOfAKindCheck(5);
         break;
       case 'FH':
-        pass = true;
+        pass = fullHouseCheck();
         break;
       case 'SS':
         pass = true;
@@ -153,15 +153,30 @@ $(function(){
 
   function sameOfAKindCheck(number) {
     let pass = false;
-    const diceTotals = dice.sort().reduce((object, die) => {
+    const diceSummary = dice.sort().reduce((object, die) => {
       object[die.value] = object[die.value] ? object[die.value] + 1 : 1;
       return object;
     }, {});
-    Object.keys(diceTotals).forEach(key => {
-      if(diceTotals[key] >= number) {
+    Object.keys(diceSummary).forEach(key => {
+      if(diceSummary[key] >= number) {
         return pass = true;
       }
     });
+    return pass;
+  }
+
+  function fullHouseCheck() {
+    let pass = false;
+    const diceSummary = dice.sort().reduce((object, die) => {
+      object[die.value] = object[die.value] ? object[die.value] + 1 : 1;
+      return object;
+    }, {});
+    const sortedDiceSummary = Object.keys(diceSummary).sort((a, b) => {
+      return diceSummary[a] < diceSummary[b];
+    });
+    if(diceSummary[sortedDiceSummary[0]] === 3 && diceSummary[sortedDiceSummary[1]] === 2) {
+      pass = true;
+    }
     return pass;
   }
 
