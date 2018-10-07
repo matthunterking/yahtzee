@@ -139,10 +139,10 @@ $(function(){
         pass = fullHouseCheck();
         break;
       case 'SS':
-        pass = true;
+        pass = straightCheck('SS');
         break;
       case 'LS':
-        pass = true;
+        pass = straightCheck('LS');
         break;
       case 'C':
         pass = true;
@@ -177,6 +177,36 @@ $(function(){
     if(diceSummary[sortedDiceSummary[0]] === 3 && diceSummary[sortedDiceSummary[1]] === 2) {
       pass = true;
     }
+    return pass;
+  }
+
+  function straightCheck(type) {
+    let pass;
+    let run = 0;
+    let passLevel;
+
+    switch (type) {
+      case 'SS':
+        passLevel = 3;
+        break;
+      case 'LS':
+        passLevel = 4;
+        break;
+    }
+
+    const uniqueDice = dice.sort((a, b) => a.value > b.value).filter((die, index, array) => {
+      if(index === 0) return true;
+      return die.value !== array[index -1].value;
+    });
+
+    uniqueDice.forEach((die, index, array) => {
+      if(index !== 0) {
+        if(die.value === array[index -1].value + 1) {
+          run += 1;
+        }
+      }
+    });
+    run >= passLevel ? pass = true : pass = false;
     return pass;
   }
 
@@ -238,6 +268,5 @@ $(function(){
     category.$selectButton.on('click', selectScore);
   });
 
-  console.log(game1);
 
 });
