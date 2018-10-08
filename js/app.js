@@ -136,7 +136,7 @@ $(function(){
     this.total += 1;
     this.$displayValue.text(`${this.total} passes`);
   }
-  
+
   function checkCondition(condition) {
     let pass = false;
     switch (condition) {
@@ -235,6 +235,7 @@ $(function(){
       this.fives = new category('fives', 5, sumOfMatching, true);
       this.sixes = new category('sixes', 6, sumOfMatching, true);
       this.upper = [this.ones, this.twos, this.threes, this.fours, this.fives, this.sixes];
+      this.upperSubtotal = 0;
       this.upperTotal = 0;
       this.threeOfAKind = new category('threeOfAKind', 'x3', sumOfAll, false);
       this.fourOfAKind = new category('fourOfAKind', 'x4', sumOfAll, false);
@@ -244,7 +245,7 @@ $(function(){
       this.yahtzee = new category('yahtzee', 'x5', setValue, false);
       this.chance = new category('chance', 'C', sumOfAll, false);
       this.pass = new category('pass', 'P', pass, false);
-
+      this.lowerTotal = 0;
       this.lower = [
         this.threeOfAKind,
         this.fourOfAKind,
@@ -255,20 +256,33 @@ $(function(){
         this.chance,
         this.pass
       ];
+      this.finalTotal = 0;
     }
     subtotal() {
       const $subtotalDisplay = $('#upperSubtotal');
-      const $grandTotalDisplay = $('#upperTotal');
-      const subtotal = this.upper.reduce((total, category) => {
+      const $UppertotalDisplay = $('.upperTotal');
+      const $lowertotalDisplay = $('#lowerTotal');
+      const $finalTotalDisplay = $('#finalTotal');
+      const upperSubtotal = this.upper.reduce((total, category) => {
         return total + category.total;
       }, 0);
-      $subtotalDisplay.text(subtotal);
-      this.upperTotal = subtotal;
-      if(subtotal >= 63) {
+      const lowerSubtotal = this.lower.reduce((total, category) => {
+        if(category.name === 'pass') return total;
+        return total + category.total;
+      }, 0);
+      this.upperSubtotal = upperSubtotal;
+      if(upperSubtotal >= 63) {
         $('#upperBonus').text('35');
-        this.upperTotal += 35;
+        this.upperTotal = this.upperSubtotal + 35;
+      } else {
+        this.upperTotal = this.upperSubtotal;
       }
-      $grandTotalDisplay.text(this.upperTotal);
+      this.lowerTotal = lowerSubtotal;
+      this.finalTotal = this.upperTotal + this.lowerTotal;
+      $subtotalDisplay.text(this.upperSubtotal);
+      $UppertotalDisplay.text(this.upperTotal);
+      $lowertotalDisplay.text(this.lowerTotal);
+      $finalTotalDisplay.text(this.finalTotal);
     }
   }
 
