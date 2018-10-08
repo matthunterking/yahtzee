@@ -57,19 +57,21 @@ $(function(){
   $rollButton.on('click', rollDice);
 
   class category {
-    constructor(name, value, calculation) {
+    constructor(name, value, calculation, active) {
       this.name = name;
       this.value = value;
       this.calculation = calculation;
       this.$selectButton = $(`#${name}`);
       this.$displayValue = $(`#${name}Display`);
       this.total = 0;
-      this.active = true;
+      this.active = active;
     }
     select() {
       if(this.active) {
         this.calculation(this.value);
-        this.$selectButton.css('backgroundColor', 'grey');
+        if(this.name !== 'pass') {
+          this.$selectButton.css('backgroundColor', 'grey');
+        }
         turnCount ++;
         game1.subtotal();
       }
@@ -79,9 +81,17 @@ $(function(){
         die.$domElement.css('border', '1px solid black');
       });
       rollCount = 0;
-      this.active = false;
+      if(this.name !== 'pass') {
+        this.active = false;
+      }
       if(turnCount > 5) {
-        // TODO: Add in a way to switch between upper and lower
+        game1.lower.forEach(category => {
+          category.active = true;
+        });
+        game1.upper.forEach(category => {
+          category.active = false;
+        });
+        turnCount = 0;
         console.log('end!!!');
       }
     }
@@ -106,7 +116,6 @@ $(function(){
   }
 
   function setValue(condition) {
-    console.log(this.name);
     const values = {
       fullHouse: 25,
       smallStraight: 30,
@@ -123,6 +132,11 @@ $(function(){
     }
   }
 
+  function pass() {
+    this.total += 1;
+    this.$displayValue.text(`${this.total} passes`);
+  }
+  
   function checkCondition(condition) {
     let pass = false;
     switch (condition) {
@@ -180,6 +194,7 @@ $(function(){
     return pass;
   }
 
+
   function straightCheck(type) {
     let pass;
     let run = 0;
@@ -213,21 +228,22 @@ $(function(){
   class game {
     constructor(id) {
       this.id = id;
-      this.ones = new category('ones', 1, sumOfMatching);
-      this.twos = new category('twos', 2, sumOfMatching);
-      this.threes = new category('threes', 3, sumOfMatching);
-      this.fours = new category('fours', 4, sumOfMatching);
-      this.fives = new category('fives', 5, sumOfMatching);
-      this.sixes = new category('sixes', 6, sumOfMatching);
+      this.ones = new category('ones', 1, sumOfMatching, true);
+      this.twos = new category('twos', 2, sumOfMatching, true);
+      this.threes = new category('threes', 3, sumOfMatching, true);
+      this.fours = new category('fours', 4, sumOfMatching, true);
+      this.fives = new category('fives', 5, sumOfMatching, true);
+      this.sixes = new category('sixes', 6, sumOfMatching, true);
       this.upper = [this.ones, this.twos, this.threes, this.fours, this.fives, this.sixes];
       this.upperTotal = 0;
-      this.threeOfAKind = new category('threeOfAKind', 'x3', sumOfAll);
-      this.fourOfAKind = new category('fourOfAKind', 'x4', sumOfAll);
-      this.fullHouse = new category('fullHouse', 'FH', setValue);
-      this.smallStraight = new category('smallStraight', 'SS', setValue);
-      this.largeStraight = new category('largeStraight', 'LS', setValue);
-      this.yahtzee = new category('yahtzee', 'x5', setValue);
-      this.chance = new category('chance', 'C', sumOfAll);
+      this.threeOfAKind = new category('threeOfAKind', 'x3', sumOfAll, false);
+      this.fourOfAKind = new category('fourOfAKind', 'x4', sumOfAll, false);
+      this.fullHouse = new category('fullHouse', 'FH', setValue, false);
+      this.smallStraight = new category('smallStraight', 'SS', setValue, false);
+      this.largeStraight = new category('largeStraight', 'LS', setValue, false);
+      this.yahtzee = new category('yahtzee', 'x5', setValue, false);
+      this.chance = new category('chance', 'C', sumOfAll, false);
+      this.pass = new category('pass', 'P', pass, false);
 
       this.lower = [
         this.threeOfAKind,
@@ -236,7 +252,8 @@ $(function(){
         this.smallStraight,
         this.largeStraight,
         this.yahtzee,
-        this.chance
+        this.chance,
+        this.pass
       ];
     }
     subtotal() {
