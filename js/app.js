@@ -91,8 +91,9 @@ $(function(){
         game1.upper.forEach(category => {
           category.active = false;
         });
-        turnCount = 0;
-        console.log('end!!!');
+      }
+      if(turnCount > 11) {
+        window.alert(`game over! You scored ${game1.finalTotal}`);
       }
     }
   }
@@ -294,7 +295,6 @@ $(function(){
   game1.upper.forEach(category => {
     category.$selectButton.on('click', selectScore);
   });
-  //TODO DO THIS AFTER UPPER IS FINISHED
   game1.lower.forEach(category => {
     category.$selectButton.on('click', selectScore);
   });
