@@ -1,4 +1,4 @@
-$(function(){
+$(() => {
 
   const $rollButton = $('.rollButton');
 
@@ -41,7 +41,6 @@ $(function(){
   let turnCount = 0;
 
   function rollDice() {
-    console.log(rollCount);
     if(rollCount < 3) {
       dice.forEach(dice => dice.roll());
       rollCount ++;
@@ -57,14 +56,15 @@ $(function(){
   $rollButton.on('click', rollDice);
 
   class category {
-    constructor(name, value, calculation, active) {
+    constructor(name, value, calculation, active, playerId) {
       this.name = name;
       this.value = value;
       this.calculation = calculation;
-      this.$selectButton = $(`#${name}`);
-      this.$displayValue = $(`#${name}Display`);
+      this.$selectButton = $(`#player${playerId}${name}`);
+      this.$displayValue = $(`#player${playerId}${name}Display`);
       this.total = 0;
       this.active = active;
+      this.playerId = playerId;
     }
     select() {
       if(this.active) {
@@ -73,7 +73,11 @@ $(function(){
           this.$selectButton.css('backgroundColor', 'grey');
         }
         turnCount ++;
-        game1.subtotal();
+        if(isPlayer1Turn) {
+          player1.subtotal();
+        } else {
+          player2.subtotal();
+        }
       }
       $rollButton.css('backgroundColor', 'white');
       dice.forEach(die => {
@@ -85,16 +89,17 @@ $(function(){
         this.active = false;
       }
       if(turnCount > 5) {
-        game1.lower.forEach(category => {
+        this.lower.forEach(category => {
           category.active = true;
         });
-        game1.upper.forEach(category => {
+        this.upper.forEach(category => {
           category.active = false;
         });
       }
       if(turnCount > 11) {
-        window.alert(`game over! You scored ${game1.finalTotal}`);
+        window.alert(`game over! You scored ${this.finalTotal}`);
       }
+      isPlayer1Turn = !isPlayer1Turn;
     }
   }
 
@@ -229,41 +234,42 @@ $(function(){
   class game {
     constructor(id) {
       this.id = id;
-      this.ones = new category('ones', 1, sumOfMatching, true);
-      this.twos = new category('twos', 2, sumOfMatching, true);
-      this.threes = new category('threes', 3, sumOfMatching, true);
-      this.fours = new category('fours', 4, sumOfMatching, true);
-      this.fives = new category('fives', 5, sumOfMatching, true);
-      this.sixes = new category('sixes', 6, sumOfMatching, true);
-      this.upper = [this.ones, this.twos, this.threes, this.fours, this.fives, this.sixes];
+      this.Ones = new category('Ones', 1, sumOfMatching, true, id);
+      this.Twos = new category('Twos', 2, sumOfMatching, true, id);
+      this.Threes = new category('Threes', 3, sumOfMatching, true, id);
+      this.Fours = new category('Fours', 4, sumOfMatching, true, id);
+      this.Fives = new category('Fives', 5, sumOfMatching, true, id);
+      this.Sixes = new category('Sixes', 6, sumOfMatching, true, id);
+      this.upper = [this.Ones, this.Twos, this.Threes, this.Fours, this.Fives, this.Sixes];
       this.upperSubtotal = 0;
       this.upperTotal = 0;
-      this.threeOfAKind = new category('threeOfAKind', 'x3', sumOfAll, false);
-      this.fourOfAKind = new category('fourOfAKind', 'x4', sumOfAll, false);
-      this.fullHouse = new category('fullHouse', 'FH', setValue, false);
-      this.smallStraight = new category('smallStraight', 'SS', setValue, false);
-      this.largeStraight = new category('largeStraight', 'LS', setValue, false);
-      this.yahtzee = new category('yahtzee', 'x5', setValue, false);
-      this.chance = new category('chance', 'C', sumOfAll, false);
-      this.pass = new category('pass', 'P', pass, false);
+      this.ThreeOfAKind = new category('ThreeOfAKind', 'x3', sumOfAll, false);
+      this.FourOfAKind = new category('FourOfAKind', 'x4', sumOfAll, false);
+      this.FullHouse = new category('FullHouse', 'FH', setValue, false);
+      this.SmallStraight = new category('SmallStraight', 'SS', setValue, false);
+      this.LargeStraight = new category('LargeStraight', 'LS', setValue, false);
+      this.Yahtzee = new category('Yahtzee', 'x5', setValue, false);
+      this.Chance = new category('Chance', 'C', sumOfAll, false);
+      this.Pass = new category('Pass', 'P', pass, false);
       this.lowerTotal = 0;
+      this.lowerIsActive = false;
       this.lower = [
-        this.threeOfAKind,
-        this.fourOfAKind,
-        this.fullHouse,
-        this.smallStraight,
-        this.largeStraight,
-        this.yahtzee,
-        this.chance,
-        this.pass
+        this.ThreeOfAKind,
+        this.FourOfAKind,
+        this.FullHouse,
+        this.SmallStraight,
+        this.LargeStraight,
+        this.Yahtzee,
+        this.Chance,
+        this.Pass
       ];
       this.finalTotal = 0;
     }
     subtotal() {
-      const $subtotalDisplay = $('#upperSubtotal');
-      const $UppertotalDisplay = $('.upperTotal');
-      const $lowertotalDisplay = $('#lowerTotal');
-      const $finalTotalDisplay = $('#finalTotal');
+      const $subtotalDisplay = $(`#player${this.id}UpperSubtotal`);
+      const $UppertotalDisplay = $(`.player${this.id}UpperTotal`);
+      const $lowertotalDisplay = $(`#player${this.id}LowerTotal`);
+      const $finalTotalDisplay = $(`#player${this.id}FinalTotal`);
       const upperSubtotal = this.upper.reduce((total, category) => {
         return total + category.total;
       }, 0);
@@ -273,7 +279,7 @@ $(function(){
       }, 0);
       this.upperSubtotal = upperSubtotal;
       if(upperSubtotal >= 63) {
-        $('#upperBonus').text('35');
+        $(`#player${this.id}UpperBonus`).text('35');
         this.upperTotal = this.upperSubtotal + 35;
       } else {
         this.upperTotal = this.upperSubtotal;
@@ -288,15 +294,27 @@ $(function(){
   }
 
   function selectScore() {
-    game1[this.id].select();
+    console.log(isPlayer1Turn);
+    if(isPlayer1Turn) {
+      console.log(this.id.split('1')[1]);
+      return player1[this.id.split('1')[1]].select();
+    } else {
+      return player2[this.id.split('2')[1]].select();
+    }
   }
 
-  const game1 = new game(1);
-  game1.upper.forEach(category => {
-    category.$selectButton.on('click', selectScore);
-  });
-  game1.lower.forEach(category => {
-    category.$selectButton.on('click', selectScore);
+  const player1 = new game(1);
+  const player2 = new game(2);
+  const players = [player1, player2];
+  let isPlayer1Turn = true;
+
+  players.forEach(player => {
+    player.upper.forEach(category => {
+      category.$selectButton.on('click', selectScore);
+    });
+    player.lower.forEach(category => {
+      category.$selectButton.on('click', selectScore);
+    });
   });
 
 

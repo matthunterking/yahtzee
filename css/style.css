@@ -18,6 +18,7 @@
   font-size: 20px;
 }
 
+
 .scorecardContainer {
   display: flex;
   flex-direction: row;
@@ -28,4 +29,8 @@ table {
   border: 1px solid black;
   width: 40%;
   margin-bottom: 20px;
+}
+
+.available {
+  border: 2px solid yellow;
 }
