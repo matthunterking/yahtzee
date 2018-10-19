@@ -39,6 +39,9 @@ $(() => {
   const dice = [die1, die2, die3, die4, die5];
   let rollCount = 0;
   let turnCount = 0;
+  const $playerName = $('#playerName');
+
+  $playerName.text('Player 1');
 
   function rollDice() {
     if(rollCount < 3) {
@@ -67,12 +70,14 @@ $(() => {
       this.playerId = playerId;
     }
     select() {
-      if(this.active) {
+      let currentPlayer;
+      isPlayer1Turn ? currentPlayer = player1 : currentPlayer = player2;
+      if(this.active && this.playerId === currentPlayer.id) {
         this.calculation(this.value);
         if(this.name !== 'pass') {
           this.$selectButton.css('backgroundColor', 'grey');
         }
-        turnCount ++;
+        currentPlayer.turnCount ++;
         if(isPlayer1Turn) {
           player1.subtotal();
         } else {
@@ -88,7 +93,7 @@ $(() => {
       if(this.name !== 'pass') {
         this.active = false;
       }
-      if(turnCount > 5) {
+      if(currentPlayer.turnCount > 5) {
         this.lower.forEach(category => {
           category.active = true;
         });
@@ -96,10 +101,13 @@ $(() => {
           category.active = false;
         });
       }
-      if(turnCount > 11) {
+      if(currentPlayer.turnCount > 11) {
         window.alert(`game over! You scored ${this.finalTotal}`);
       }
       isPlayer1Turn = !isPlayer1Turn;
+
+      $playerName.text(`Player ${isPlayer1Turn ? '1' : '2'}`);
+    
     }
   }
 
@@ -264,6 +272,7 @@ $(() => {
         this.Pass
       ];
       this.finalTotal = 0;
+      this.turnCount = 0;
     }
     subtotal() {
       const $subtotalDisplay = $(`#player${this.id}UpperSubtotal`);
@@ -294,12 +303,13 @@ $(() => {
   }
 
   function selectScore() {
-    console.log(isPlayer1Turn);
+    let playerCategory;
     if(isPlayer1Turn) {
-      console.log(this.id.split('1')[1]);
-      return player1[this.id.split('1')[1]].select();
+      playerCategory = player1[this.id.split('1')[1]];
+      if(playerCategory) return playerCategory.select();
     } else {
-      return player2[this.id.split('2')[1]].select();
+      playerCategory = player2[this.id.split('2')[1]];
+      if(playerCategory) return playerCategory.select();
     }
   }
 
