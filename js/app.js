@@ -16,17 +16,18 @@ $(() => {
         const value = Math.floor(Math.random() * 6) + 1;
         // const value = 3;
         this.value = value;
-        this.$domElement.text(value);
+        this.$domElement.text('');
+        this.$domElement.css('backgroundImage', `url(./${value}.png)`);
       }
     }
-    hold() {
-      if(this.value && this.active) {
-        this.active = false;
-        this.$domElement.css('border', '2px solid red');
-      } else if(!this.active) {
-        this.active = true;
-        this.$domElement.css('border', '1px solid black');
-      }
+    makeInactive() {
+      // if(this.value && this.active) {
+      this.active = false;
+      this.$domElement.css('border', '2px solid red');
+    }
+    makeActive() {
+      this.active = true;
+      this.$domElement.css('border', '1px solid black');
     }
   }
 
@@ -38,22 +39,42 @@ $(() => {
 
   const dice = [die1, die2, die3, die4, die5];
   let rollCount = 0;
-  let turnCount = 0;
   const $playerName = $('#playerName');
 
   $playerName.text('Player 1');
 
   function rollDice() {
     if(rollCount < 3) {
-      dice.forEach(dice => dice.roll());
+      dice.forEach(die => {
+        if(die.active) {
+          die.roll();
+        }
+      });
       rollCount ++;
     } else if(rollCount === 3) {
-      $rollButton.css('backgroundColor', 'grey');
+      dice.forEach(die => {
+        die.makeInactive();
+        die.$holdButton.css('backgroundColor', 'grey');
+        $rollButton.css('backgroundColor', 'grey');
+      });
+    }
+
+    if(section === 'upper' && rollCount === 1) {
+      currentPlayer.upper.forEach(category => category.switchActive());
+    } else if(rollCount === 1){
+      player1.lower.forEach(category => category.active = true);
+      player2.lower.forEach(category => category.active = true);
+      currentPlayer.lower.forEach(category => category.switchActive());
     }
   }
 
   function holdDie() {
-    dice[this.classList.value[0] -1].hold();
+    const targetDie = dice[this.classList.value[0] -1];
+    if(targetDie.active) {
+      targetDie.makeInactive();
+    } else {
+      targetDie.makeActive();
+    }
   }
 
   $rollButton.on('click', rollDice);
@@ -70,44 +91,85 @@ $(() => {
       this.playerId = playerId;
     }
     select() {
-      let currentPlayer;
-      isPlayer1Turn ? currentPlayer = player1 : currentPlayer = player2;
-      if(this.active && this.playerId === currentPlayer.id) {
+      if(isPlayer1Turn) {
+        currentPlayer = player1;
+        otherPlayer = player2;
+      } else {
+        currentPlayer = player2;
+        otherPlayer = player1;
+      }
+
+      if(this.active) {
         this.calculation(this.value);
         if(this.name !== 'pass') {
           this.$selectButton.css('backgroundColor', 'grey');
         }
         currentPlayer.turnCount ++;
-        if(isPlayer1Turn) {
-          player1.subtotal();
-        } else {
-          player2.subtotal();
-        }
-      }
-      $rollButton.css('backgroundColor', 'white');
-      dice.forEach(die => {
-        die.active = true;
-        die.$domElement.css('border', '1px solid black');
-      });
-      rollCount = 0;
-      if(this.name !== 'pass') {
+        currentPlayer.subtotal();
         this.active = false;
       }
-      if(currentPlayer.turnCount > 5) {
-        this.lower.forEach(category => {
-          category.active = true;
-        });
-        this.upper.forEach(category => {
-          category.active = false;
-        });
+
+      $rollButton.css('backgroundColor', 'white');
+
+      dice.forEach(die => {
+        die.makeActive();
+      });
+
+      rollCount = 0;
+
+      this.switchActive();
+
+      this.switchTurns();
+
+
+
+    }
+    switchActive() {
+      if(this.active) {
+        console.log(this);
+        this.$selectButton.on('click', selectScore);
+      } else {
+        this.$selectButton.off('click', selectScore);
       }
-      if(currentPlayer.turnCount > 11) {
-        window.alert(`game over! You scored ${this.finalTotal}`);
+
+    }
+    // makeInactive() {
+    //   if(this.name !== 'pass') {
+    //     this.active = false;
+    //   }
+    // }
+    switchTurns() {
+      if(currentPlayer.turnCount === 6 && otherPlayer.turnCount === 6 ) {
+        this.switchSection();
+      }
+      if(currentPlayer.turnCount === 12 && otherPlayer.turnCount === 12) {
+        if(player1.finalTotal > player2.finalTotal) {
+          window.alert(`game over! Player 1 wins ${player1.finalTotal} to ${player2.finalTotal}`);
+        } else if(player1.finalTotal === player2.finalTotal) {
+          window.alert('It\'s a draw!');
+        } else {
+          window.alert(`game over! Player 2 wins ${player2.finalTotal} to ${player1.finalTotal}`);
+        }
       }
       isPlayer1Turn = !isPlayer1Turn;
+      if(isPlayer1Turn) {
+        currentPlayer = player1;
+        otherPlayer = player2;
+      } else {
+        currentPlayer = player2;
+        otherPlayer = player1;
+      }
 
       $playerName.text(`Player ${isPlayer1Turn ? '1' : '2'}`);
-    
+    }
+    switchSection() {
+      player1.upper.forEach(category => {
+        category.$selectButton.off('click', selectScore);
+      });
+      player2.upper.forEach(category => {
+        category.$selectButton.off('click', selectScore);
+      });
+      section = 'lower';
     }
   }
 
@@ -131,10 +193,10 @@ $(() => {
 
   function setValue(condition) {
     const values = {
-      fullHouse: 25,
-      smallStraight: 30,
-      largeStraight: 40,
-      yahtzee: 50
+      FullHouse: 25,
+      SmallStraight: 30,
+      LargeStraight: 40,
+      Yahtzee: 50
     };
     if(checkCondition(condition)){
       this.total = values[this.name];
@@ -208,7 +270,6 @@ $(() => {
     return pass;
   }
 
-
   function straightCheck(type) {
     let pass;
     let run = 0;
@@ -251,14 +312,14 @@ $(() => {
       this.upper = [this.Ones, this.Twos, this.Threes, this.Fours, this.Fives, this.Sixes];
       this.upperSubtotal = 0;
       this.upperTotal = 0;
-      this.ThreeOfAKind = new category('ThreeOfAKind', 'x3', sumOfAll, false);
-      this.FourOfAKind = new category('FourOfAKind', 'x4', sumOfAll, false);
-      this.FullHouse = new category('FullHouse', 'FH', setValue, false);
-      this.SmallStraight = new category('SmallStraight', 'SS', setValue, false);
-      this.LargeStraight = new category('LargeStraight', 'LS', setValue, false);
-      this.Yahtzee = new category('Yahtzee', 'x5', setValue, false);
-      this.Chance = new category('Chance', 'C', sumOfAll, false);
-      this.Pass = new category('Pass', 'P', pass, false);
+      this.ThreeOfAKind = new category('ThreeOfAKind', 'x3', sumOfAll, false, id);
+      this.FourOfAKind = new category('FourOfAKind', 'x4', sumOfAll, false, id);
+      this.FullHouse = new category('FullHouse', 'FH', setValue, false, id);
+      this.SmallStraight = new category('SmallStraight', 'SS', setValue, false, id);
+      this.LargeStraight = new category('LargeStraight', 'LS', setValue, false, id);
+      this.Yahtzee = new category('Yahtzee', 'x5', setValue, false, id);
+      this.Chance = new category('Chance', 'C', sumOfAll, false, id);
+      this.Pass = new category('Pass', 'P', pass, false, id);
       this.lowerTotal = 0;
       this.lowerIsActive = false;
       this.lower = [
@@ -283,7 +344,7 @@ $(() => {
         return total + category.total;
       }, 0);
       const lowerSubtotal = this.lower.reduce((total, category) => {
-        if(category.name === 'pass') return total;
+        if(category.name === 'Pass') return total;
         return total + category.total;
       }, 0);
       this.upperSubtotal = upperSubtotal;
@@ -315,17 +376,12 @@ $(() => {
 
   const player1 = new game(1);
   const player2 = new game(2);
-  const players = [player1, player2];
+  let currentPlayer = player1;
+  let otherPlayer = player2;
+  let section = 'upper';
+
   let isPlayer1Turn = true;
 
-  players.forEach(player => {
-    player.upper.forEach(category => {
-      category.$selectButton.on('click', selectScore);
-    });
-    player.lower.forEach(category => {
-      category.$selectButton.on('click', selectScore);
-    });
-  });
 
 
 });
