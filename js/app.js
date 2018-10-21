@@ -17,17 +17,23 @@ $(() => {
         // const value = 3;
         this.value = value;
         this.$domElement.text('');
-        this.$domElement.css('backgroundImage', `url(./${value}.png)`);
+        const rollEffect = setInterval(() => {
+          const random = Math.floor(Math.random() * 6) + 1;
+          this.$domElement.css('backgroundImage', `url(./${random}.png)`);
+        }, 100);
+        setTimeout(() => {
+          clearInterval(rollEffect);
+          this.$domElement.css('backgroundImage', `url(./${value}.png)`);
+        }, 1000);
       }
     }
     makeInactive() {
-      // if(this.value && this.active) {
       this.active = false;
-      this.$domElement.css('border', '2px solid red');
+      this.$domElement.css('border', '5px solid red');
     }
     makeActive() {
       this.active = true;
-      this.$domElement.css('border', '1px solid black');
+      this.$domElement.css('border', 'none');
     }
   }
 
